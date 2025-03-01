@@ -1,0 +1,51 @@
+@model List<ReservationsApprovalViewModel>
+
+@{
+    ViewData["Title"] = "Manage Reservations";
+}
+
+<h2>Pending Reservations</h2>
+
+@if (Model == null || Model.Count == 0)
+{
+    <p>No pending reservations.</p>
+}
+else
+{
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Viewer</th>
+                <th>Departure</th>
+                <th>Destination</th>
+                <th>Date</th>
+                <th>Reserved Seats</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var reservation in Model)
+            {
+                <tr>
+                    <td>@reservation.UserName</td>
+                    <td>@reservation.Departure</td>
+                    <td>@reservation.Destination</td>
+                    <td>@reservation.Date.ToString("f")</td>
+                    <td>@reservation.NumOfReservedSeats</td>
+                    <td>@reservation.Status</td>
+                    <td>
+                        <form method="post" asp-action="ApproveReservation" asp-controller="Reservation">
+                            <input type="hidden" name="reservationId" value="@reservation.ReservationId" />
+                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="post" asp-action="DeclineReservation" asp-controller="Reservation" style="margin-top: 5px;">
+                            <input type="hidden" name="reservationId" value="@reservation.ReservationId" />
+                            <button type="submit" class="btn btn-danger btn-sm">Decline</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

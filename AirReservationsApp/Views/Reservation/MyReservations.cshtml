@@ -1,0 +1,38 @@
+@model List<AirReservationsApp.Models.ReservationsViewModel>
+
+@{
+    ViewData["Title"] = "My Reservations";
+}
+
+<h2>My Reservations</h2>
+
+@if (Model == null || Model.Count == 0)
+{
+    <p>No reservations found.</p>
+}
+else
+{
+    <table class="table table-striped mt-3">
+        <thead>
+            <tr>
+                <th>Departure</th>
+                <th>Destination</th>
+                <th>Date</th>
+                <th>Reserved Seats</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var reservation in Model)
+            {
+                <tr>
+                    <td>@reservation.Departure</td>
+                    <td>@reservation.Destination</td>
+                    <td>@reservation.Date.ToString("f")</td>
+                    <td>@reservation.NumOfReservedSeats</td>
+                    <td>@reservation.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

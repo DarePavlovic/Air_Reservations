@@ -1,0 +1,47 @@
+@{
+    ViewData["Title"] = "Users List";
+}
+@model List<AirReservationsApp.Models.User>
+<h1>Users</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Last Name
+            </th>
+            <th>
+                Username
+            </th>
+            <th>
+                User Type
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>
+                    @user.Name
+                </td>
+                <td>
+                    @user.Lastname
+                </td>
+                <td>
+                    @user.UserName
+                </td>
+                <td>
+                    @user.UserType
+                </td>
+                @* <td>
+                    <a href="@Url.Action("Edit", "User", new { id = user.Id })">Edit</a> |
+                    <a href="@Url.Action("Delete", "User", new { id = user.Id })">Delete</a>
+                </td> *@
+            </tr>
+        }
+    </tbody>
+</table>

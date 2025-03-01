@@ -1,0 +1,26 @@
+@model AirReservationsApp.Models.ReservationViewModel
+
+@{
+    ViewData["Title"] = "Reserve Flight";
+}
+
+<h1>Reserve Flight</h1>
+
+@if (ViewData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@ViewData["ErrorMessage"]</div>
+}
+
+<form method="post" asp-action="ReserveFlight">
+    <input type="hidden" asp-for="FlightId" />
+
+    <div class="mt-3">
+        <label class="form-label">Number of Seats to Reserve</label>
+        <input type="number" class="form-control" asp-for="SeatsReserved" required min="1" />
+        <span class="text-danger" asp-validation-for="SeatsReserved"></span>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Confirm Reservation</button>
+    </div>
+</form>

@@ -1,0 +1,12 @@
+@foreach (var flight in Model)
+{
+    <tr>
+        <td>@flight.FlightNumber</td>
+        <td>@flight.Departure</td>
+        <td>@flight.Destination</td>
+        <td>@flight.DepartureDate.ToString("f")</td>
+        <td>
+            <a href="@Url.Action("Delete", "Flight", new { id = flight.Id })" class="btn btn-danger">Delete</a>
+        </td>
+    </tr>
+}

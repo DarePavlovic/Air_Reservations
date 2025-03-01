@@ -1,0 +1,105 @@
+@{
+    ViewData["Title"] = "Add Flight";
+}
+@model AirReservationsApp.Models.FlightViewModel
+<h1>Add Flight</h1>
+
+<form method="post">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    <div class="mt-3">
+        <label class="form-label">Departure</label>
+        <select class="form-control" asp-for="Departure" id="departure" required>
+            <option value="" disabled selected>Select Departure</option> <!-- Default placeholder -->
+            <option value="Beograd">Beograd</option>
+            <option value="Nis">Nis</option>
+            <option value="Kraljevo">Kraljevo</option>
+            <option value="Pristina">Pristina</option>
+        </select>
+        <span class="text-danger" asp-validation-for="Departure"></span>
+    </div>
+
+    <div class="mt-3">
+        <label class="form-label">Destination</label>
+        <select class="form-control" asp-for="Destination" id="destination" required>
+            <option value="" disabled selected>Select Destination</option> <!-- Default placeholder -->
+            <option value="Beograd">Beograd</option>
+            <option value="Nis">Nis</option>
+            <option value="Kraljevo">Kraljevo</option>
+            <option value="Pristina">Pristina</option>
+        </select>
+        <span class="text-danger" asp-validation-for="Destination"></span>
+    </div>
+    <div class="mt-3">
+        <label class="form-label">Date</label>
+        <input type="datetime-local" class="form-control" asp-for="Date" placeholder="Enter date and time" required id="flightDate">
+        <span class="text-danger" asp-validation-for="Date"></span>
+    </div>
+    <div class="mt-3">
+        <label class="form-label">Number of Connected Flights</label>
+        <input type="number" class="form-control" asp-for="NumOfConnectedFlights"
+            placeholder="Enter number of connected flights" required>
+        <span class="text-danger" asp-validation-for="NumOfConnectedFlights"></span>
+    </div>
+    <div class="mt-3">
+        <label class="form-label">Seats Available</label>
+        <input type="number" class="form-control" asp-for="SeatsAvailable" placeholder="Enter number of seats available"
+            required>
+        <span class="text-danger" asp-validation-for="SeatsAvailable"></span>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Add</button>
+    </div>
+</form>
+
+<script>
+    document.getElementById('departure').addEventListener('change', function () {
+        var selectedDeparture = this.value; // Get selected departure value
+        var destinationSelect = document.getElementById('destination');
+        var options = destinationSelect.getElementsByTagName('option'); // Get all destination options
+
+        // Re-enable all options first
+        for (var i = 0; i < options.length; i++) {
+            options[i].disabled = false;
+        }
+
+        // Disable the option that matches the selected departure
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === selectedDeparture) {
+                options[i].disabled = true; // Disable the selected departure from being a destination
+            }
+        }
+    });
+
+    document.getElementById('destination').addEventListener('change', function () {
+        var selectedDeparture = this.value; // Get selected departure value
+        var destinationSelect = document.getElementById('departure');
+        var options = destinationSelect.getElementsByTagName('option'); // Get all destination options
+
+        // Re-enable all options first
+        for (var i = 0; i < options.length; i++) {
+            options[i].disabled = false;
+        }
+
+        // Disable the option that matches the selected departure
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === selectedDeparture) {
+                options[i].disabled = true; // Disable the selected departure from being a destination
+            }
+        }
+    });
+
+    // Set minimum date to current date and time
+    var dateInput = document.getElementById('flightDate');
+    var now = new Date();
+    var year = now.getFullYear();
+    var month = ('0' + (now.getMonth() + 1)).slice(-2);
+    var day = ('0' + now.getDate()).slice(-2);
+    var hours = ('0' + now.getHours()).slice(-2);
+    var minutes = ('0' + now.getMinutes()).slice(-2);
+    var currentDateTime = year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+    dateInput.min = currentDateTime;
+</script>

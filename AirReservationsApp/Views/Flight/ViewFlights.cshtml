@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "View Flights";
+}
+@model List<AirReservationsApp.Models.Flight>
+<h1>Flights</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Departure
+            </th>
+            <th>
+                Destination
+            </th>
+            <th>
+                Date and Time
+            </th>
+            <th>
+                Number of Connected Flights
+            </th>
+            <th>
+                Seats Available
+            </th>
+            @if(User.IsInRole("Admin"))
+            {
+                <th></th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var flight in Model.Where(f => f.Date > DateTime.Now))
+        {
+            var rowClass = flight.SeatsAvailable < 5 ? "text-danger" : "";
+            
+            <tr class="@rowClass">
+                <td>
+                    @flight.Departure
+                </td>
+                <td>
+                    @flight.Destination
+                </td>
+                <td>
+                    @flight.Date.ToString("f")
+                </td>
+                <td>
+                    @flight.NumOfConnectedFlights
+                </td>
+                <td>
+                    @flight.SeatsAvailable
+                </td>
+                @if (User.IsInRole("Admin"))
+                {
+                    <td>
+                        <a asp-action="Delete" asp-route-id="@flight.Id" class="btn btn-danger">Remove Flight</a>
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
