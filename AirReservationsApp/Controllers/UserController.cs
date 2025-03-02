@@ -64,6 +64,10 @@ namespace AirReservationsApp.Controllers
                         ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
                     }
                 }
+                else{
+                    TempData["ErrorMessage"] = "Username doesn't exist!";
+                    ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+                }
             }
 
             return View(model);

@@ -25,14 +25,36 @@ else
         <tbody>
             @foreach (var reservation in Model)
             {
-                <tr>
+                <tr id="reservation-@reservation.ReservationId">
                     <td>@reservation.Departure</td>
                     <td>@reservation.Destination</td>
                     <td>@reservation.Date.ToString("f")</td>
                     <td>@reservation.NumOfReservedSeats</td>
-                    <td>@reservation.Status</td>
+                    <td id="status-@reservation.ReservationId">@reservation.Status</td>
                 </tr>
             }
         </tbody>
     </table>
 }
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/reservationHub")
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+    connection.start().catch(err => console.error(err.toString()));
+
+    connection.on("ReceiveReservationStatusChange", (reservationId, status) => {
+        let statusElement = document.getElementById(`status-${reservationId}`);
+        if (statusElement) {
+            statusElement.innerText = status;
+            if (status === "Approved") {
+                statusElement.classList.add("text-success");
+            } else if (status === "Declined") {
+                statusElement.classList.add("text-danger");
+            }
+        }
+    });
+</script>

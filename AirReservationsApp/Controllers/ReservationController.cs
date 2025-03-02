@@ -5,6 +5,7 @@ using AirReservationsApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace AirReservationsApp.Controllers
@@ -15,15 +16,18 @@ namespace AirReservationsApp.Controllers
 
         private readonly ApplicationDbContext dbContext;
         private readonly UserManager<User> userManager;
+        private readonly IHubContext<ReservationHub> hubContext;
 
-        public ReservationController(ApplicationDbContext dbContext, UserManager<User> userManager)
+        public ReservationController(ApplicationDbContext dbContext, UserManager<User> userManager, IHubContext<ReservationHub> hubContext)
         {
             this.dbContext = dbContext;
             this.userManager = userManager;
+            this.hubContext = hubContext;
         }
 
 
         [HttpGet]
+        [Authorize(Roles = "Viewer")]
         public IActionResult ReserveFlight(int flightId)
         {
             var flight = dbContext.Flights.FirstOrDefault(f => f.Id == flightId);
@@ -43,7 +47,8 @@ namespace AirReservationsApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult ReserveFlight(ReservationViewModel viewModel)
+        [Authorize(Roles = "Viewer")]
+        public async Task<IActionResult> ReserveFlight(ReservationViewModel viewModel)
         {
             var flight = dbContext.Flights.FirstOrDefault(f => f.Id == viewModel.FlightId);
             if (flight == null || viewModel.SeatsReserved > flight.SeatsAvailable)
@@ -67,12 +72,13 @@ namespace AirReservationsApp.Controllers
             dbContext.Reservations.Add(reservation);
             //flight.SeatsAvailable -= reservation.SeatsReserved; // This should be done when agent accepts the reservation
             dbContext.SaveChanges();
-
+            await hubContext.Clients.All.SendAsync("ReceiveNewReservation"); 
             TempData["SuccessMessage"] = "Reservation successful!";
-            return RedirectToAction("SearchFlights", "Flight");
+            return RedirectToAction("MyReservations", "Reservation");
         }
 
         [HttpGet]
+        [Authorize(Roles = "Viewer")]
         public async Task<IActionResult> MyReservations()
         {
             string userId = userManager.GetUserId(User) ?? string.Empty;
@@ -84,6 +90,7 @@ namespace AirReservationsApp.Controllers
                                 .Where(r => r.UserId == userId)
                                 .Select(r => new ReservationsViewModel
                                 {
+                                    ReservationId = r.Id,
                                     Departure = r.Flight.Departure,
                                     Destination = r.Flight.Destination,
                                     Date = r.Flight.Date,
@@ -100,7 +107,7 @@ namespace AirReservationsApp.Controllers
 
         public IActionResult ManageReservations()
         {
-            
+
             var pendingReservations = dbContext.Reservations
                 .Where(r => r.Status == "Pending")
                 .Select(r => new ReservationsApprovalViewModel
@@ -122,7 +129,7 @@ namespace AirReservationsApp.Controllers
         [HttpPost]
         [Authorize(Roles = "Agent")]
 
-        public IActionResult ApproveReservation(int reservationId)
+        public async Task<IActionResult> ApproveReservation(int reservationId)
         {
             var reservation = dbContext.Reservations
         .Include(r => r.Flight) // Include flight data
@@ -152,18 +159,24 @@ namespace AirReservationsApp.Controllers
 
             dbContext.SaveChanges(); // Save changes to DB
 
+            await hubContext.Clients.All.SendAsync("ReceiveReservationStatusChange", reservation.Id, "Approved");
+            await hubContext.Clients.All.SendAsync("ReceiveReservationUpdate");
+
+
             return RedirectToAction("ManageReservations");
         }
 
         [HttpPost]
         [Authorize(Roles = "Agent")]
-        public IActionResult DeclineReservation(int reservationId)
+        public async Task<IActionResult> DeclineReservation(int reservationId)
         {
             var reservation = dbContext.Reservations.Find(reservationId);
             if (reservation != null)
             {
                 reservation.Status = "Declined";
                 dbContext.SaveChanges();
+                await hubContext.Clients.All.SendAsync("ReceiveReservationStatusChange", reservation.Id, "Declined");
+
             }
 
             return RedirectToAction("ManageReservations");

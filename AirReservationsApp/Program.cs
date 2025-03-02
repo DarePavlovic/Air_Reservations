@@ -27,6 +27,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -44,6 +45,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -51,7 +53,16 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=User}/{action=Login}/{id?}");
+app.MapControllerRoute(
+        name: "agent",
+        pattern: "Agent/{controller=Reservation}/{action=ManageReservations}/{id?}");
+
+app.MapControllerRoute(
+        name: "viewer",
+        pattern: "Viewer/{controller=Reservation}/{action=MyReservations}/{id?}");
 app.MapRazorPages();
+app.MapHub<ReservationHub>("/reservationHub");
+
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

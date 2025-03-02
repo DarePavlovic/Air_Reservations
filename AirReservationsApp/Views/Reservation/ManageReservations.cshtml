@@ -12,7 +12,7 @@
 }
 else
 {
-    <table class="table table-striped mt-3">
+    <table class="table table-striped mt-3" id="reservations-table">
         <thead>
             <tr>
                 <th>Viewer</th>
@@ -27,21 +27,21 @@ else
         <tbody>
             @foreach (var reservation in Model)
             {
-                <tr>
+                <tr id="reservation-@reservation.ReservationId">
                     <td>@reservation.UserName</td>
                     <td>@reservation.Departure</td>
                     <td>@reservation.Destination</td>
                     <td>@reservation.Date.ToString("f")</td>
                     <td>@reservation.NumOfReservedSeats</td>
-                    <td>@reservation.Status</td>
+                    <td id="status-@reservation.ReservationId">@reservation.Status</td>
                     <td>
                         <form method="post" asp-action="ApproveReservation" asp-controller="Reservation">
                             <input type="hidden" name="reservationId" value="@reservation.ReservationId" />
-                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                            <button type="submit" class="btn btn-success btn-sm" onclick="approveReservation(@reservation.ReservationId)" >Approve</button>
                         </form>
                         <form method="post" asp-action="DeclineReservation" asp-controller="Reservation" style="margin-top: 5px;">
                             <input type="hidden" name="reservationId" value="@reservation.ReservationId" />
-                            <button type="submit" class="btn btn-danger btn-sm">Decline</button>
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="declineReservation(@reservation.ReservationId)">Decline</button>
                         </form>
                     </td>
                 </tr>
@@ -49,3 +49,20 @@ else
         </tbody>
     </table>
 }
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/reservationHub")
+        .build();
+
+    connection.start().catch(err => console.error(err.toString()));
+
+    connection.on("ReceiveReservationUpdate", function () {
+        location.reload(); // Refresh when a reservation is approved/declined
+    });
+
+    connection.on("ReceiveNewReservation", function () {
+        location.reload(); // Refresh when a new reservation is made by a Viewer
+    });
+</script>
