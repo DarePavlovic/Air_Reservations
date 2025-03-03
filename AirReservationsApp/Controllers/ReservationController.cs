@@ -105,10 +105,10 @@ namespace AirReservationsApp.Controllers
         [HttpGet]
         [Authorize(Roles = "Agent")]
 
-        public IActionResult ManageReservations()
+        public async Task<IActionResult> ManageReservations()
         {
 
-            var pendingReservations = dbContext.Reservations
+            var pendingReservations = await dbContext.Reservations
                 .Where(r => r.Status == "Pending")
                 .Select(r => new ReservationsApprovalViewModel
                 {
@@ -121,7 +121,7 @@ namespace AirReservationsApp.Controllers
                     NumOfReservedSeats = r.SeatsReserved,
                     Status = r.Status
                 })
-                .ToList();
+                .ToListAsync();
 
             return View(pendingReservations);
         }

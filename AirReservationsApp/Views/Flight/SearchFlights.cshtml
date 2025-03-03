@@ -121,10 +121,16 @@
                     <td>@flight.SeatsAvailable</td>
                     <td>@flight.NumOfConnectedFlights</td>
                     <td>
-                        <form method="get" asp-action="ReserveFlight" asp-controller="Reservation">
-                            <input type="hidden" name="flightId" value="@flight.Id" />
-                            <button type="submit" class="btn btn-success">Reserve</button>
-                        </form>
+                        @if ((flight.Date - DateTime.Now).TotalDays >= 3)
+                        {
+                            <form method="get" asp-action="ReserveFlight" asp-controller="Reservation">
+                                <input type="hidden" name="flightId" value="@flight.Id" />
+                                <button type="submit" class="btn btn-success">Reserve</button>
+                            </form>
+                        }
+                        else{
+                            @:Can't reserve flight less than 3 days before departure.
+                        }
                     </td>
                 </tr>
             }

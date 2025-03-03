@@ -24,7 +24,7 @@ namespace AirReservationsApp.Controllers
 
 
         [HttpPost]
-        public IActionResult AddFlight(FlightViewModel viewModel)
+        public async Task<IActionResult> AddFlight(FlightViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
@@ -37,7 +37,7 @@ namespace AirReservationsApp.Controllers
                     SeatsAvailable = viewModel.SeatsAvailable
                 };
                 Console.WriteLine("Adding flight");
-                dbContext.Flights.AddAsync(flight);
+                await dbContext.Flights.AddAsync(flight);
                 dbContext.SaveChanges();
                 TempData["SuccessMessage"] = "Flight added successfully!";
                 return RedirectToAction("AddFlight");
