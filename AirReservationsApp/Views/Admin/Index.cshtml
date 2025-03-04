@@ -3,9 +3,15 @@
 }
 
 <h1>Welcome Admin</h1>
+<h3>You can: </h3>
 <nav>
     <ul>
-        <li><a href="/User/Register">Register</a></li>
-        <li><a href="/Flights/List">Flight List</a></li>
+        <li>
+            <a class=" text-dark" asp-area="" asp-controller="User" asp-action="Register">Register</a>
+        </li>
+        <li>
+            <a class=" text-dark" asp-area="" asp-controller="Flight" asp-action="ViewFlights">View all
+                Flights</a>
+        </li>
     </ul>
 </nav>

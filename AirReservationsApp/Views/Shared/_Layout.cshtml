@@ -18,39 +18,48 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AirReservationsApp</a>
+                @{
+                    string homeController = "Home";
+                    string homeAction = "Index";
+
+                    if (SignInManager.IsSignedIn(User))
+                    {
+                        var user = await UserManager.GetUserAsync(User);
+                        if (user != null)
+                        {
+                            var roles = await UserManager.GetRolesAsync(user);
+                            if (roles.Contains("Admin"))
+                            {
+                                homeController = "Admin";
+                                homeAction = "Index";
+                            }
+                            else if (roles.Contains("Agent"))
+                            {
+                                homeController = "Agent";
+                                homeAction = "Index";
+                            }
+                            else if (roles.Contains("Viewer"))
+                            {
+                                homeController = "Viewer";
+                                homeAction = "Index";
+                            }
+                        }
+                    }
+                }
+                <a class="navbar-brand" asp-area="" asp-controller="@homeController" asp-action="@homeAction">AirReservationsApp</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    @* 
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="List">All Users</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Login">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Register">Register</a>
-                        </li>
-                    </ul>
-                 *@
-                    @if (SignInManager.IsSignedIn(User))
-                    {
-                        var user = await UserManager.GetUserAsync(User);
-                        @if (user != null)
+                        @if (SignInManager.IsSignedIn(User))
                         {
-                            var roles = await UserManager.GetRolesAsync(user);
+                            var user = await UserManager.GetUserAsync(User);
+                            if (user != null)
+                            {
+                                var roles = await UserManager.GetRolesAsync(user);
 
-                            <ul class="navbar-nav flex-grow-1">
                                 @if (roles.Contains("Admin"))
                                 {
                                     <li class="nav-item">
@@ -61,7 +70,6 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Flight"
                                             asp-action="ViewFlights">View all Flights</a>
                                     </li>
-                                    
                                 }
                                 @if (roles.Contains("Agent"))
                                 {
@@ -77,7 +85,6 @@
                                         <a class="nav-link text-dark" asp-area="" asp-controller="Reservation"
                                             asp-action="ManageReservations">Manage Reservations</a>
                                     </li>
-                                    
                                 }
                                 @if (roles.Contains("Viewer"))
                                 {
@@ -89,22 +96,28 @@
                                        <a class="nav-link text-dark" asp-controller="Reservation" asp-action="MyReservations" class="btn btn-primary">My Reservations</a>
                                     </li>
                                 }
-                                <li class="nav-item">
-                                    <form asp-controller="User" asp-action="Logout" method="post" class="d-inline">
-                                        <button type="submit" class="nav-link btn btn-link text-dark border-0"
-                                            style="cursor: pointer;">
-                                            Logout
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-
+                            }
                         }
-                    }
-                    else
-                    {
-                        <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Login">Login</a>
-                    }
+                    </ul>
+                    <ul class="navbar-nav">
+                        @if (SignInManager.IsSignedIn(User))
+                        {
+                            <li class="nav-item">
+                                <form asp-controller="User" asp-action="Logout" method="post" class="d-inline">
+                                    <button type="submit" class="nav-link btn btn-link text-dark border-0"
+                                        style="cursor: pointer;">
+                                        Logout
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Login">Login</a>
+                            </li>
+                        }
+                    </ul>
                 </div>
             </div>
         </nav>
