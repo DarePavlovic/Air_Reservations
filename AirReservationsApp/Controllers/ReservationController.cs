@@ -71,7 +71,6 @@ namespace AirReservationsApp.Controllers
 
             // Save reservation
             dbContext.Reservations.Add(reservation);
-            //flight.SeatsAvailable -= reservation.SeatsReserved; // This should be done when agent accepts the reservation
             dbContext.SaveChanges();
             await hubContext.Clients.All.SendAsync("ReceiveNewReservation"); 
             return RedirectToAction("MyReservations", "Reservation");
