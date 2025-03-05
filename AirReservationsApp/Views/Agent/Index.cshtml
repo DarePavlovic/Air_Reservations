@@ -1,4 +1,31 @@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AirReservationsApp.Models.User> UserManager
+
 @{
     ViewData["Title"] = "Agent Page";
+    var user = await UserManager.GetUserAsync(User);
 }
-<h1>Welcome agent</h1>
+
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card" style="width: 50%;">
+        <div class="card-header" style="background-color: #003366; color: white;">
+            <h1>Welcome @user.UserName</h1>
+        </div>
+        <div class="card-body text-center">
+            <h3>You can:</h3>
+            <ul class="list-group">
+                <li class="list-group-item text-center">
+                    <a class="text-primary" asp-area="" asp-controller="Flight" asp-action="AddFlight">Add Flight</a>
+                </li>
+                <li class="list-group-item text-center">
+                    <a class="text-primary" asp-area="" asp-controller="Flight" asp-action="ViewFlights">View all Flights</a>
+                </li>
+                <li class="list-group-item text-center">
+                    <a class="text-primary" asp-area="" asp-controller="Reservation" asp-action="ManageReservations">Manage Reservations</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+

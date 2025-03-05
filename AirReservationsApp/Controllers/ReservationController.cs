@@ -176,6 +176,7 @@ namespace AirReservationsApp.Controllers
                 reservation.Status = "Declined";
                 dbContext.SaveChanges();
                 await hubContext.Clients.All.SendAsync("ReceiveReservationStatusChange", reservation.Id, "Declined");
+                await hubContext.Clients.All.SendAsync("ReceiveReservationUpdate");
 
             }
 

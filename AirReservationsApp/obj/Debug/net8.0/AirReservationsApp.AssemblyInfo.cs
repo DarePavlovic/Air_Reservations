@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AirReservationsApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d9732855e0ddd24809b6dd60568efab8317ac9a6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f86c06779c16ade580323fcbf1b3ea7d407aacf4")]
 [assembly: System.Reflection.AssemblyProductAttribute("AirReservationsApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AirReservationsApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

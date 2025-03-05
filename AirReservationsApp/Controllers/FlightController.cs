@@ -16,14 +16,16 @@ namespace AirReservationsApp.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Agent")]
         public IActionResult AddFlight()
         {
             return View();
         }
 
 
-
+        
         [HttpPost]
+        [Authorize(Roles = "Agent")]
         public async Task<IActionResult> AddFlight(FlightViewModel viewModel)
         {
             if (ModelState.IsValid)
@@ -82,6 +84,7 @@ namespace AirReservationsApp.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, Agent")]
         public async Task<IActionResult> ViewFlights()
         {
             var flights = await dbContext.Flights.OrderBy(f => f.Date).ToListAsync();
@@ -89,6 +92,7 @@ namespace AirReservationsApp.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles="Viewer")]
         public IActionResult SearchFlights(string departure, string destination, string numOfLayovers)
         {
             if (string.IsNullOrEmpty(departure) || string.IsNullOrEmpty(destination))

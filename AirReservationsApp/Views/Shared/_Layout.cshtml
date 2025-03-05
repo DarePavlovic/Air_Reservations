@@ -9,14 +9,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - AirReservationsApp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AirReservationsApp.styles.css" asp-append-version="true" />
 </head>
 
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3"  style="background-color: #003366; color: white;">
             <div class="container-fluid">
                 @{
                     string homeController = "Home";
@@ -46,13 +48,13 @@
                         }
                     }
                 }
-                <a class="navbar-brand" asp-area="" asp-controller="@homeController" asp-action="@homeAction">AirReservationsApp</a>
+                <a class="navbar-brand text-white" asp-area="" asp-controller="@homeController" asp-action="@homeAction">✈️AirReservationsApp</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav ms-auto flex-grow-1">
                         @if (SignInManager.IsSignedIn(User))
                         {
                             var user = await UserManager.GetUserAsync(User);
@@ -63,49 +65,49 @@
                                 @if (roles.Contains("Admin"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="User"
+                                        <a class="nav-link text-white" asp-area="" asp-controller="User"
                                             asp-action="Register">Register</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Flight"
+                                        <a class="nav-link text-white" asp-area="" asp-controller="Flight"
                                             asp-action="ViewFlights">View all Flights</a>
                                     </li>
                                 }
                                 @if (roles.Contains("Agent"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Flight" asp-action="AddFlight">Add
+                                        <a class="nav-link text-white" asp-area="" asp-controller="Flight" asp-action="AddFlight">Add
                                             Flight</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Flight"
+                                        <a class="nav-link text-white" asp-area="" asp-controller="Flight"
                                             asp-action="ViewFlights">View all Flights</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Reservation"
+                                        <a class="nav-link text-white" asp-area="" asp-controller="Reservation"
                                             asp-action="ManageReservations">Manage Reservations</a>
                                     </li>
                                 }
                                 @if (roles.Contains("Viewer"))
                                 {
                                     <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Flight"
+                                        <a class="nav-link text-white" asp-area="" asp-controller="Flight"
                                             asp-action="SearchFlights">Search Flight</a>
                                     </li>
                                     <li class="nav-item">
-                                       <a class="nav-link text-dark" asp-controller="Reservation" asp-action="MyReservations" class="btn btn-primary">My Reservations</a>
+                                       <a class="nav-link text-white" asp-controller="Reservation" asp-action="MyReservations" class="btn btn-primary">My Reservations</a>
                                     </li>
                                 }
                             }
                         }
                     </ul>
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav ms-auto">
                         @if (SignInManager.IsSignedIn(User))
                         {
                             <li class="nav-item">
                                 <form asp-controller="User" asp-action="Logout" method="post" class="d-inline">
-                                    <button type="submit" class="nav-link btn btn-link text-dark border-0"
-                                        style="cursor: pointer;">
+                                    <button type="submit" class="nav-link btn btn-link text-white border-0"
+                                        style="cursor: pointer; background-color: #003366; color: white;">
                                         Logout
                                     </button>
                                 </form>
@@ -114,7 +116,7 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Login">Login</a>
+                                <a class="nav-link text-white" asp-area="" asp-controller="User" asp-action="Login">Login</a>
                             </li>
                         }
                     </ul>
@@ -136,6 +138,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+
     @await RenderSectionAsync("Scripts", required: false)
     @section Scripts {
         @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

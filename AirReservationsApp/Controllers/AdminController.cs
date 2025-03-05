@@ -7,6 +7,7 @@ namespace AirReservationsApp.Controllers
     public class AdminController : Controller
     {
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             return View();

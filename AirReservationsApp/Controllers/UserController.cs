@@ -1,5 +1,6 @@
 using AirReservationsApp.Data;
 using AirReservationsApp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -83,12 +84,14 @@ namespace AirReservationsApp.Controllers
         
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Register()
         {
             return View();
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
@@ -124,13 +127,13 @@ namespace AirReservationsApp.Controllers
                     Console.WriteLine(error.Description); // Debug output
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
-                // await dbContext.Users.AddAsync(users);
-                // await dbContext.SaveChangesAsync();
+                
             }
             return View(model);
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> List()
         {
             var users = await dbContext.Users.ToListAsync();

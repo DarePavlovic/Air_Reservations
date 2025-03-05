@@ -2,16 +2,24 @@
     ViewData["Title"] = "Admin Page";
 }
 
-<h1>Welcome Admin</h1>
-<h3>You can: </h3>
-<nav>
-    <ul>
-        <li>
-            <a class=" text-dark" asp-area="" asp-controller="User" asp-action="Register">Register</a>
-        </li>
-        <li>
-            <a class=" text-dark" asp-area="" asp-controller="Flight" asp-action="ViewFlights">View all
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card" style="width: 50%;">
+        <div class="card-header" style="background-color: #003366; color: white;">
+            <h1>Welcome to Admin page</h1>
+        </div>
+        <div class="card-body text-center">
+            <h3>You can:</h3>
+            <ul class="list-group">
+                <li class="list-group-item text-center">
+                    <a class="text-primary" asp-area="" asp-controller="User" asp-action="Register">Register</a>
+                </li>
+                <li class="list-group-item text-center">
+                    <a class=" text-primary" asp-area="" asp-controller="Flight" asp-action="ViewFlights">View all
                 Flights</a>
-        </li>
-    </ul>
-</nav>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
