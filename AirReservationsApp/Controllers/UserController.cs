@@ -94,6 +94,7 @@ namespace AirReservationsApp.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            
             if (ModelState.IsValid)
             {
                 var users = new User

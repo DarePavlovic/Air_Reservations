@@ -28,6 +28,7 @@ namespace AirReservationsApp.Controllers
         [Authorize(Roles = "Agent")]
         public async Task<IActionResult> AddFlight(FlightViewModel viewModel)
         {
+            
             if (ModelState.IsValid)
             {
                 Flight flight = new Flight

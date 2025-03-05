@@ -30,7 +30,7 @@
     <tbody>
         @foreach (var flight in Model.Where(f => f.Date > DateTime.Now))
         {
-            var rowClass = flight.SeatsAvailable < 5 ? "text-danger" : "";
+            var rowClass = flight.SeatsAvailable < 5 ? "bg-warning text-white" : "";
             
             <tr class="@rowClass">
                 <td>

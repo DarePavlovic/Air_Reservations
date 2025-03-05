@@ -50,6 +50,7 @@ namespace AirReservationsApp.Controllers
         [Authorize(Roles = "Viewer")]
         public async Task<IActionResult> ReserveFlight(ReservationViewModel viewModel)
         {
+            
             var flight = dbContext.Flights.FirstOrDefault(f => f.Id == viewModel.FlightId);
             if (flight == null || viewModel.SeatsReserved > flight.SeatsAvailable)
             {
@@ -73,7 +74,6 @@ namespace AirReservationsApp.Controllers
             //flight.SeatsAvailable -= reservation.SeatsReserved; // This should be done when agent accepts the reservation
             dbContext.SaveChanges();
             await hubContext.Clients.All.SendAsync("ReceiveNewReservation"); 
-            TempData["SuccessMessage"] = "Reservation successful!";
             return RedirectToAction("MyReservations", "Reservation");
         }
 

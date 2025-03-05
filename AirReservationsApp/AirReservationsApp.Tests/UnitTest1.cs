@@ -16,7 +16,7 @@ using Microsoft.Extensions.Options;
 
 namespace AirReservationsApp.AirReservationsApp.Tests
 {
-    public class UnitTest1
+    public class UnitTest1 : IDisposable
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly FlightController _FlightController;
@@ -39,7 +39,7 @@ namespace AirReservationsApp.AirReservationsApp.Tests
             _userManagerMock = GetMockUserManager();
             _hubContextMock = new Mock<IHubContext<ReservationHub>>();
             _mockClientProxy = new Mock<IClientProxy>();
-        _hubContextMock.Setup(hub => hub.Clients.All).Returns(_mockClientProxy.Object);
+            _hubContextMock.Setup(hub => hub.Clients.All).Returns(_mockClientProxy.Object);
 
             _ReservationController = new ReservationController(
                 _dbContext, // Using the real in-memory database
@@ -69,11 +69,16 @@ namespace AirReservationsApp.AirReservationsApp.Tests
             // Act: Call the AddFlight method
             var result = await _FlightController.AddFlight(viewModel);
 
-            // Assert: Verify the flight was added and the result is a redirect to AddFlight
+
             var flight = _dbContext.Flights.FirstOrDefault(f => f.Departure == "Beograd" && f.Destination == "Pristina");
             Assert.NotNull(flight); // Ensure the flight was added
-            Assert.IsType<RedirectToActionResult>(result);
-            Assert.Equal("AddFlight", ((RedirectToActionResult)result).ActionName);
+            Assert.Equal("Beograd", flight.Departure);
+            Assert.Equal("Pristina", flight.Destination);
+            Assert.Equal(1, flight.NumOfConnectedFlights);
+            Assert.Equal(100, flight.SeatsAvailable);
+
+            var redirectResult = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("AddFlight", redirectResult.ActionName);
         }
 
         [Fact]
@@ -109,11 +114,10 @@ namespace AirReservationsApp.AirReservationsApp.Tests
 
             // Act: Call the SearchFlights method
             var result = _FlightController.SearchFlights("Beograd", "Pristina", "0") as ViewResult;
-            var flights = result?.Model as System.Collections.Generic.List<Flight>;
+            Assert.NotNull(result);
+            var flights = Assert.IsType<List<Flight>>(result.Model);
 
-            // Assert: Verify only one flight matches the search criteria
-            Assert.NotNull(flights);
-            Assert.Single(flights); // Ensure only one flight matches the search criteria
+            Assert.Single(flights);
             Assert.Equal("Beograd", flights[0].Departure);
             Assert.Equal("Pristina", flights[0].Destination);
             Assert.Equal(0, flights[0].NumOfConnectedFlights);
@@ -122,26 +126,11 @@ namespace AirReservationsApp.AirReservationsApp.Tests
         [Fact]
         public async Task ReserveFlight_ValidModel_ShouldCreateReservation()
         {
-            // Arrange: Add a flight to the in-memory database and set up the reservation view model
-            var flight = new Flight
-            {
-                Id = 1,
-                Departure = "Beograd",
-                Destination = "Pristina",
-                Date = DateTime.UtcNow.AddDays(2),
-                NumOfConnectedFlights = 0,
-                SeatsAvailable = 10
-            };
-            _dbContext.Flights.Add(flight);
-            _dbContext.SaveChanges();
+            // Arrange
+            var flight = AddFlightToDb();
+            string userId = GetUserId(); // Get the user ID from Mock UserManager
 
-
-            _userManagerMock.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns("user123");
-
-            var viewModel = new ReservationViewModel { FlightId = 1, SeatsReserved = 2, Flight = flight, Status = "Pending" };
-
-            _ReservationController.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>()); // Fixes TempData issue
-
+            var viewModel = new ReservationViewModel { FlightId = 1, SeatsReserved = 2, Flight = flight, Status = "Pending", UserId = userId };
             // Act: Call the ReserveFlight method
             var result = await _ReservationController.ReserveFlight(viewModel);
 
@@ -149,6 +138,7 @@ namespace AirReservationsApp.AirReservationsApp.Tests
             var reservation = _dbContext.Reservations.FirstOrDefault(r => r.FlightId == 1);
             Assert.NotNull(reservation);
             Assert.Equal("Pending", reservation.Status);
+            Assert.Equal(2, reservation.SeatsReserved);
             Assert.IsType<RedirectToActionResult>(result);
         }
 
@@ -156,79 +146,57 @@ namespace AirReservationsApp.AirReservationsApp.Tests
         public async Task ApproveReservation_Valid_ShouldUpdateStatus() //Check if the reservation status is updated to Approved and the number of available seats is reduced
         {
             // Arrange: Add a flight and reservation to the in-memory database
-            var flight = new Flight
-            {
-                Id = 1,
-                Departure = "Beograd",
-                Destination = "Pristina",
-                Date = DateTime.UtcNow.AddDays(2),
-                NumOfConnectedFlights = 0,
-                SeatsAvailable = 10
-            };
-            var reservation = new Reservation { Id = 1, FlightId = 1, SeatsReserved = 2, Flight = flight, Status = "Pending" };
+            var flight = AddFlightToDb(10, 0);
+            var userId = GetUserId();// Get the user ID from Mock UserManager
+            var reservation = AddReservationToDb(flight.Id, flight, 2, userId);
 
-            _dbContext.Flights.Add(flight);
-            _dbContext.Reservations.Add(reservation);
-            _dbContext.SaveChanges();
             // Act: Call the ApproveReservation method
-            var result = await _ReservationController.ApproveReservation(1);
+            var result = await _ReservationController.ApproveReservation(reservationId: reservation.Id);
 
             // Assert: Verify the reservation status was updated and seats available were reduced
-            Assert.Equal("Approved", reservation.Status);
-            Assert.Equal(8, flight.SeatsAvailable);
+            var updatedReservation = await _dbContext.Reservations.FindAsync(reservation.Id);
+            var updatedFlight = await _dbContext.Flights.FindAsync(flight.Id);
+
+            Assert.NotNull(updatedReservation);
+            Assert.Equal("Approved", updatedReservation.Status);
+            Assert.NotNull(updatedFlight);
+            Assert.Equal(8, updatedFlight.SeatsAvailable); // Ensure seat count is reduced
             Assert.IsType<RedirectToActionResult>(result);
         }
 
         [Fact]
         public async Task DeclineReservation_Valid_ShouldUpdateStatus()
         {
-            // Arrange: Add a reservation to the in-memory database
-            var flight = new Flight
-            {
-                Id = 1,
-                Departure = "Beograd",
-                Destination = "Pristina",
-                Date = DateTime.UtcNow.AddDays(2),
-                NumOfConnectedFlights = 0,
-                SeatsAvailable = 10
-            };
-            var reservation = new Reservation { Id = 1, FlightId = 1, SeatsReserved = 2, Flight = flight, Status = "Pending" };
-            _dbContext.Reservations.Add(reservation);
-            _dbContext.SaveChanges();
+            // Arrange: Add a flight and reservation to the in-memory database
+            var flight = AddFlightToDb(10, 0);
+            var userId = GetUserId();// Get the user ID from Mock UserManager
+            var reservation = AddReservationToDb(flight.Id, flight, 2, userId);
 
-            // Act: Call the DeclineReservation method
-            var result = await _ReservationController.DeclineReservation(1);
+            // Act: Call the ApproveReservation method
+            var result = await _ReservationController.DeclineReservation(reservationId: reservation.Id);
 
-            // Assert: Verify the reservation status was updated
-            Assert.Equal("Declined", reservation.Status);
-            Assert.Equal(10, flight.SeatsAvailable);
+            // Assert: Verify the reservation status was updated and seats available were reduced
+            var updatedReservation = await _dbContext.Reservations.FindAsync(reservation.Id);
+            var updatedFlight = await _dbContext.Flights.FindAsync(flight.Id);
+
+            Assert.NotNull(updatedReservation);
+            Assert.Equal("Declined", updatedReservation.Status);
+            Assert.NotNull(updatedFlight);
+            Assert.Equal(10, updatedFlight.SeatsAvailable); // Ensure seat count is reduced
             Assert.IsType<RedirectToActionResult>(result);
+
         }
 
         [Fact]
         public async Task ReserveFlight_ShouldTriggerSignalR() //Tests the ReserveFlight method of the ReservationController to ensure it triggers SignalR and returns a redirect result.
         {
-            // Arrange: Add a flight to the in-memory database and set up the reservation view model
-            var flight = new Flight
-            {
-                Id = 1,
-                Departure = "Beograd",
-                Destination = "Pristina",
-                Date = DateTime.UtcNow.AddDays(2),
-                NumOfConnectedFlights = 0,
-                SeatsAvailable = 5
-            };
-            _dbContext.Flights.Add(flight);
-            _dbContext.SaveChanges();
-            //mock UserManager to return a fakse userID user123
-            //_userManagerMock.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns("user123");
-            //Mock SignalR Hub
-            var hubClientsMock = new Mock<IHubClients>(); //A mocked IHubClients object simulates SignalR clients.
-            hubClientsMock.Setup(c => c.All).Returns(_mockClientProxy.Object); //_mockClientProxy is set up to capture calls to SendCoreAsync(), which is how SignalR sends messages.
-            _hubContextMock.Setup(h => h.Clients).Returns(hubClientsMock.Object);
+            // Arrange
+            var flight = AddFlightToDb(5,0);
+            var userId = GetUserId(); // Get the user ID from Mock UserManager
+            var viewModel = new ReservationViewModel { FlightId = 1, SeatsReserved = 2, Flight = flight, Status = "Pending", UserId=userId };
 
-            var viewModel = new ReservationViewModel { FlightId = 1, SeatsReserved = 2, Flight = flight, Status = "Pending" };
-            _ReservationController.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>()); // Fix TempData issue during testing
+            // Set up SignalR mock
+            SetupSignalRMock(); 
 
             // Act: Call the ReserveFlight method
             var result = await _ReservationController.ReserveFlight(viewModel);
@@ -242,23 +210,11 @@ namespace AirReservationsApp.AirReservationsApp.Tests
         public async Task ApproveReservation_ShouldTriggerSignalR()
         {
             // Arrange: Add a flight and reservation to the in-memory database
-            var flight = new Flight
-            {
-                Id = 1,
-                Departure = "Beograd",
-                Destination = "Pristina",
-                Date = DateTime.UtcNow.AddDays(2),
-                NumOfConnectedFlights = 0,
-                SeatsAvailable = 10
-            };
-            var reservation = new Reservation { Id = 1, FlightId = 1, SeatsReserved = 2, Flight = flight, Status = "Pending" };
-            _dbContext.Flights.Add(flight);
-            _dbContext.Reservations.Add(reservation);
-            _dbContext.SaveChanges();
-
-            var hubClientsMock = new Mock<IHubClients>();
-            hubClientsMock.Setup(c => c.All).Returns(_mockClientProxy.Object);
-            _hubContextMock.Setup(h => h.Clients).Returns(hubClientsMock.Object);
+            var flight = AddFlightToDb(5,0);
+            var userId = GetUserId(); // Get the user ID from Mock UserManager
+            var reservation = AddReservationToDb(flight.Id, flight, 2, userId);
+            
+            SetupSignalRMock();
 
             // Act: Call the ApproveReservation method
             var result = await _ReservationController.ApproveReservation(1);
@@ -271,25 +227,78 @@ namespace AirReservationsApp.AirReservationsApp.Tests
 
         private Mock<UserManager<User>> GetMockUserManager()
         {
-// Create a mock UserManager
+            // Create a mock UserManager
             var store = new Mock<IUserStore<User>>();
             var mockUserManager = new Mock<UserManager<User>>(
-                store.Object,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null
+                store.Object, null, null, null, null, null, null, null, null
             );
 
-// Set up the GetUserId method to return a test user ID
+            // Set up the GetUserId method to return a test user ID
             mockUserManager.Setup(m => m.GetUserId(It.IsAny<ClaimsPrincipal>()))
                 .Returns("test-user-id");
 
             return mockUserManager;
+        }
+
+        public void Dispose()
+        {
+            _dbContext.Database.EnsureDeleted(); // Ensures the database is deleted after each test
+            _dbContext.Dispose();
+        }
+        private string GetUserId()
+        {
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "user123") };
+            var identity = new ClaimsIdentity(claims);
+            var userPrincipal = new ClaimsPrincipal(identity);
+
+            // Mock UserManager to return the expected user ID
+            _userManagerMock.Setup(u => u.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns("user123");
+
+            // Act: Retrieve user ID
+            var userId = _userManagerMock.Object.GetUserId(userPrincipal); // Get the user ID
+            if (userId == null)
+            {
+                userId = "";
+            }
+            return userId;
+        }
+
+        private Flight AddFlightToDb(int seatsAvailable = 10, int connectedFlights = 0)
+        {
+            var flight = new Flight
+            {
+                Departure = "Beograd",
+                Destination = "Pristina",
+                Date = DateTime.UtcNow.AddDays(4),
+                NumOfConnectedFlights = connectedFlights,
+                SeatsAvailable = seatsAvailable
+            };
+            _dbContext.Flights.Add(flight);
+            _dbContext.SaveChanges();
+            return flight;
+        }
+
+        private Reservation AddReservationToDb(int flightId, Flight flight, int seatsReserved, string userid)
+        {
+            var reservation = new Reservation
+            {
+                FlightId = flightId,
+                SeatsReserved = seatsReserved,
+                Status = "Pending",
+                UserId = userid,
+                Flight = flight
+            };
+            _dbContext.Reservations.Add(reservation);
+            _dbContext.SaveChanges();
+            return reservation;
+        }
+
+        private void SetupSignalRMock()
+        {
+            //Mock SignalR Hub
+            var hubClientsMock = new Mock<IHubClients>(); //A mocked IHubClients object simulates SignalR clients.
+            hubClientsMock.Setup(c => c.All).Returns(_mockClientProxy.Object); //_mockClientProxy is set up to capture calls to SendCoreAsync(), which is how SignalR sends messages.
+            _hubContextMock.Setup(h => h.Clients).Returns(hubClientsMock.Object);
         }
     }
 }
